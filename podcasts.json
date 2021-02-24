@@ -1,0 +1,14 @@
+{
+    "location": "/home/bwoodford/media/podcasts",
+    "podcasts": [
+        {
+            "name": "Philosophize This!",
+            "url": "https://philosophizethis.libsyn.com/rss"
+        },
+        {
+            "name": "Google",
+            "url": "woo"
+        }
+    ] 
+}
+
