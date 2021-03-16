@@ -1,9 +1,9 @@
 package main
 
 import(
-    exec "github.com/IveGotNorto/podimator/pkg/podimator"
+    . "github.com/IveGotNorto/podimator/pkg/podimator"
 )
 
 func main() {
-    exec.Podimator();
+    Podimator();
 }

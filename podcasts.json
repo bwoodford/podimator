@@ -3,11 +3,13 @@
     "podcasts": [
         {
             "name": "Philosophize This!",
-            "url": "https://philosophizethis.libsyn.com/rss"
+            "url": "https://philosophizethis.libsyn.com/rss",
+            "updated": ""
         },
         {
-            "name": "Google",
-            "url": "woo"
+            "name": "Lex Fridman Podcast",
+            "url": "https://lexfridman.com/feed/podcast",
+            "updated": ""
         }
     ] 
 }
