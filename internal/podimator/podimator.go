@@ -12,18 +12,20 @@ import(
     . "github.com/IveGotNorto/podimator/internal/podcast"
 )
 
+const workers int = 5
+
 type Podimator struct{
     Config *Config
     Client *grab.Client
 }
 
-const workers int = 5
-
 func (podi *Podimator) Process() {
+    fp := gofeed.NewParser()
+
     for _, podcast := range podi.Config.Podcasts {
-        feed, err := feedParse(podcast)
+        feed, err := fp.ParseURL(podcast.Url)
         if err != nil {
-            fmt.Fprintf(os.Stderr, "Error parsing %s: %v\n", podcast.Name, err)
+            fmt.Fprintf(os.Stderr, "unable to parse %s: %v\n", podcast.Name, err)
             continue
         }
         fmt.Printf("Processing \"%v\"\n", podcast.Name)
@@ -33,13 +35,7 @@ func (podi *Podimator) Process() {
     }
 }
 
-
-func feedParse(podcast Podcast) (*gofeed.Feed, error) {
-    fp := gofeed.NewParser()
-    return fp.ParseURL(podcast.Url)
-}
-
-func episodes(items []*gofeed.Item, downloadPath string) ([]*grab.Request){
+func episodes(items []*gofeed.Item, downloadPath string) ([]*grab.Request) {
     var reqs []*grab.Request
     for _, i := range items {
         var enclosure *gofeed.Enclosure
@@ -50,7 +46,7 @@ func episodes(items []*gofeed.Item, downloadPath string) ([]*grab.Request){
             }
         }
         if enclosure == nil {
-            fmt.Fprintf(os.Stderr, "Failed to recieve Enclosure from Feed Item\n")
+            fmt.Fprintf(os.Stderr, "failed to find audio/mpeg in rss enclosure")
             continue
         }
 
