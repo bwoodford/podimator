@@ -5,16 +5,14 @@ import (
     "flag"
     "os"
 
-    "github.com/IveGotNorto/podimator/pkg/podimator"
+    "github.com/IveGotNorto/podimator"
 )
 
 func AllCommand() *Command {
     gc := &Command{
         sub: flag.NewFlagSet("all", flag.ContinueOnError),
     }
-    gc.sub.StringVar(&gc.podcast, "name", "", "name of the podcast to be processed")
-    gc.sub.StringVar(&gc.config, "config", "podcast.json", "configuration path location")
-    gc.sub.BoolVar(&gc.verbose, "v", false, "change program output level")
+    gc.sub.StringVar(&gc.podcast, "podcast", "", "name of the podcast to be processed")
     return gc
 }
 
@@ -22,17 +20,13 @@ func UpdateCommand() *Command {
     gc := &Command{
         sub: flag.NewFlagSet("update", flag.ContinueOnError),
     }
-    gc.sub.StringVar(&gc.podcast, "name", "", "name of the podcast to be processed")
-    gc.sub.StringVar(&gc.config, "config", "podcast.json", "configuration path location")
-    gc.sub.BoolVar(&gc.verbose, "v", false, "change program output level")
+    gc.sub.StringVar(&gc.podcast, "podcast", "", "name of the podcast to be processed")
     return gc
 }
 
 type Command struct {
     sub *flag.FlagSet
     podcast string
-    config string
-    verbose bool
 }
 
 func (g *Command) Name() string {
@@ -45,9 +39,9 @@ func (g *Command) Init(args []string) error {
 
 func (g *Command) Run() error {
     if g.sub.Name() == "all" {
-        podimator.All(g.name) 
+        podimator.All(g.podcast) 
     } else {
-        podimator.Update(g.name) 
+        podimator.Update(g.podcast) 
     }
     return nil
 }
@@ -60,16 +54,19 @@ type Runner interface {
 
 func process(args []string) error {
 
+    var subcommand string
+
     if len(args) < 1 {
-        return errors.New("You must pass a sub-command")
+        // Default command
+        subcommand = "update"
     }
+
+    subcommand := os.Args[1]
 
     cmds := []Runner{
         AllCommand(),
         UpdateCommand(),
     }
-
-    subcommand := os.Args[1]
 
     for _, cmd := range cmds {
         if cmd.Name() == subcommand {
@@ -80,7 +77,7 @@ func process(args []string) error {
     return nil
 }
 
-func Get() error {
+func Run() error {
     // TODO: Implement error handling and usage output
     return process(os.Args[1:])
 }

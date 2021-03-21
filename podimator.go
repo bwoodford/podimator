@@ -7,16 +7,49 @@ import(
 
     "github.com/cavaliercoder/grab"
     "github.com/mmcdole/gofeed"
-
-    . "github.com/IveGotNorto/podimator/internal/config"
-    . "github.com/IveGotNorto/podimator/internal/podcast"
 )
 
-const workers int = 5
-
-type Podimator struct{
+type Podimator struct {
     Config *Config
     Client *grab.Client
+}
+
+var podi Podimator
+const workers int = 5
+
+func init() {
+    podi = Podimator {
+        Config: ConfigParse("podcasts.json"),
+        Client: grab.NewClient(),
+    }
+
+    podi.Config.Setup()
+    podi.Client.UserAgent = "Podimator"
+}
+
+// Process all existing podcasts
+func All(podcast string) {
+    if len(podcast) > 0 && !contains(podcast) {
+         return 
+    }
+    fmt.Printf("Getting all episodes for show: %v\n", podcast)
+}
+
+// Get all current episodes of podcasts
+func Update(podcast string) {
+    if len(podcast) > 0 && !contains(podcast) {
+        return
+    }
+    fmt.Printf("Updating show: %v\n", podcast)
+}
+
+func contains(name string) bool {
+    for _, podcast := range podi.Config.Podcasts {
+        if podcast.Name == name {
+            return true
+        }
+    }
+    return false
 }
 
 func (podi *Podimator) Process() {
@@ -60,7 +93,6 @@ func episodes(items []*gofeed.Item, downloadPath string) ([]*grab.Request) {
     return reqs
 }
 
-
 func download(reqs []*grab.Request, client *grab.Client) {
 
     respch := client.DoBatch(workers, reqs...)
@@ -91,7 +123,9 @@ func download(reqs []*grab.Request, client *grab.Client) {
                     if err := resp.Err(); err != nil {
                         fmt.Fprintf(os.Stderr, "Error downloading %s: %v\n", resp.Request.URL(), err)
                     } else {
-                        fmt.Printf("Finished %s %d / %d bytes (%d%%)\n", resp.Filename, resp.BytesComplete(), resp.Size, int(100*resp.Progress()))
+                        fmt.Printf("Finished %s %d / %d bytes (%d%%)\n", 
+                                    resp.Filename, resp.BytesComplete(), 
+                                    resp.Size, int(100*resp.Progress()))
                     }
 
                     // mark completed
@@ -105,7 +139,11 @@ func download(reqs []*grab.Request, client *grab.Client) {
             for _, resp := range responses {
                 if resp != nil {
                     inProgress++
-                    fmt.Printf("Downloading %s %d / %d bytes (%d%%)\033[K\n", resp.Filename, resp.BytesComplete(), resp.Size, int(100*resp.Progress()))
+                    fmt.Printf("Downloading %s %d / %d bytes (%d%%)\033[K\n", 
+                                resp.Filename,
+                                resp.BytesComplete(), 
+                                resp.Size, 
+                                int(100*resp.Progress()))
                 }
             }
         }
@@ -114,6 +152,5 @@ func download(reqs []*grab.Request, client *grab.Client) {
     t.Stop()
     fmt.Printf("%d files successfully downloaded.\n", len(reqs))
 }
-
 
 

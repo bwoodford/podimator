@@ -1,17 +1,15 @@
-package config
+package podimator
 
 import(
     "encoding/json"
     "fmt"
     "os"
     "io/ioutil"
-
-    "github.com/IveGotNorto/podimator/internal/podcast"
 )
 
 type Config struct {
     Location string `json:"location"`
-    Podcasts []podcast.Podcast `json:"podcasts"`
+    Podcasts []Podcast `json:"podcasts"`
 }
 
 func (config *Config) Setup() {

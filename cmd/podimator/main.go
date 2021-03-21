@@ -1,9 +1,9 @@
 package main
 
 import(
-    "github.com/IveGotNorto/podimator/pkg/terminal"
+    "github.com/IveGotNorto/podimator/terminal"
 )
 
 func main() {
-    terminal.Get()
+    terminal.Run()
 }

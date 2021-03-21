@@ -1,4 +1,4 @@
-package podcast
+package podimator
 
 type Podcast struct {
     Url string `json:"url"`
