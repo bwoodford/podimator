@@ -2,6 +2,7 @@ package podimator
 
 import(
     "fmt"
+    "math"
     "os"
     "time"
 
@@ -12,6 +13,13 @@ import(
 type Podimator struct {
     Config *Config
     Client *grab.Client
+}
+
+type Podcast struct {
+    URL string `json:"url"`
+    Name string `json:"name"`
+    Updated string `json:"updated"`
+    Process bool
 }
 
 var podi Podimator
@@ -27,48 +35,61 @@ func init() {
     podi.Client.UserAgent = "Podimator"
 }
 
-// Process all existing podcasts
+// Process existing podcast(s) for all episodes
 func All(podcast string) {
     if len(podcast) > 0 && !contains(podcast) {
          return 
+    } else if len(podcast) == 0 {
+        markProcess(podcast)
     }
-    fmt.Printf("Getting all episodes for show: %v\n", podcast)
+    podi.Process(math.MaxInt32)
 }
 
-// Get all current episodes of podcasts
-func Update(podcast string) {
+// Process existing podcast(s) for most recent episodes
+func Update(podcast string, episodes int) {
     if len(podcast) > 0 && !contains(podcast) {
+        // Podcast does not exist
         return
+    } else if len(podcast) == 0 {
+        markProcess(podcast)
     }
-    fmt.Printf("Updating show: %v\n", podcast)
+    podi.Process(episodes)
+}
+
+func (podi *Podimator) Process(episodes int) {
+    fp := gofeed.NewParser()
+
+    for _, podcast := range podi.Config.Podcasts {
+        feed, err := fp.ParseURL(podcast.URL)
+        if err != nil {
+            fmt.Fprintf(os.Stderr, "unable to parse %s: %v\n", podcast.Name, err)
+            continue
+        }
+        items := feed.Items[0:episodes]
+        fmt.Printf("Processing \"%v\"\n", podcast.Name)
+        requests := getRequests(items, podi.Config.Location + "/" + podcast.Name)
+        fmt.Printf("Downloading %d files...\n", len(requests))
+        download(requests, podi.Client)
+    }
+}
+
+func markProcess(name string) {
+    for _, podcast := range podi.Config.Podcasts {
+        podcast.Process = true
+    }
 }
 
 func contains(name string) bool {
     for _, podcast := range podi.Config.Podcasts {
         if podcast.Name == name {
+            podcast.Process = true
             return true
         }
     }
     return false
 }
 
-func (podi *Podimator) Process() {
-    fp := gofeed.NewParser()
-
-    for _, podcast := range podi.Config.Podcasts {
-        feed, err := fp.ParseURL(podcast.Url)
-        if err != nil {
-            fmt.Fprintf(os.Stderr, "unable to parse %s: %v\n", podcast.Name, err)
-            continue
-        }
-        fmt.Printf("Processing \"%v\"\n", podcast.Name)
-        requests := episodes(feed.Items, podi.Config.Location + "/" + podcast.Name)
-        fmt.Printf("Downloading %d files...\n", len(requests))
-        download(requests, podi.Client)
-    }
-}
-
-func episodes(items []*gofeed.Item, downloadPath string) ([]*grab.Request) {
+func getRequests(items []*gofeed.Item, downloadPath string) ([]*grab.Request) {
     var reqs []*grab.Request
     for _, i := range items {
         var enclosure *gofeed.Enclosure
@@ -121,7 +142,7 @@ func download(reqs []*grab.Request, client *grab.Client) {
                 if resp != nil && resp.IsComplete() {
                     // print final result
                     if err := resp.Err(); err != nil {
-                        fmt.Fprintf(os.Stderr, "Error downloading %s: %v\n", resp.Request.URL(), err)
+                        fmt.Fprintf(os.Stderr, "downloading failed %s: %v\n", resp.Request.URL(), err)
                     } else {
                         fmt.Printf("Finished %s %d / %d bytes (%d%%)\n", 
                                     resp.Filename, resp.BytesComplete(), 

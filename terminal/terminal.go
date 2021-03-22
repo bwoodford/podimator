@@ -1,7 +1,6 @@
 package terminal
 
 import (
-    "errors"
     "flag"
     "os"
 
@@ -21,12 +20,14 @@ func UpdateCommand() *Command {
         sub: flag.NewFlagSet("update", flag.ContinueOnError),
     }
     gc.sub.StringVar(&gc.podcast, "podcast", "", "name of the podcast to be processed")
+    gc.sub.IntVar(&gc.episodes, "num", 1, "number of episodes to retrieve")
     return gc
 }
 
 type Command struct {
     sub *flag.FlagSet
     podcast string
+    episodes int
 }
 
 func (g *Command) Name() string {
@@ -41,7 +42,7 @@ func (g *Command) Run() error {
     if g.sub.Name() == "all" {
         podimator.All(g.podcast) 
     } else {
-        podimator.Update(g.podcast) 
+        podimator.Update(g.podcast, g.episodes) 
     }
     return nil
 }
@@ -61,7 +62,7 @@ func process(args []string) error {
         subcommand = "update"
     }
 
-    subcommand := os.Args[1]
+    subcommand = os.Args[1]
 
     cmds := []Runner{
         AllCommand(),

@@ -19,11 +19,14 @@ func (config *Config) Setup() {
     }
 
     for _, podcast := range config.Podcasts {
+        // Create directories
         fullPath := fmt.Sprintf("%v/%v", config.Location, podcast.Name)
         err = os.MkdirAll(fullPath, 755)
         if err != nil {
             os.Exit(1)
         }
+        // Initially unmark all podcasts
+        podcast.Process = false
     }
 }
 
