@@ -1,85 +1,74 @@
 package terminal
 
 import (
-    "flag"
     "os"
 
-    "github.com/IveGotNorto/podimator"
+    "github.com/urfave/cli/v2"
+
+    "github.com/IveGotNorto/podimator/podimator"
 )
 
-func AllCommand() *Command {
-    gc := &Command{
-        sub: flag.NewFlagSet("all", flag.ContinueOnError),
-    }
-    gc.sub.StringVar(&gc.podcast, "podcast", "", "name of the podcast to be processed")
-    return gc
-}
+func Run() {
+    podi := podimator.New()
 
-func UpdateCommand() *Command {
-    gc := &Command{
-        sub: flag.NewFlagSet("update", flag.ContinueOnError),
-    }
-    gc.sub.StringVar(&gc.podcast, "podcast", "", "name of the podcast to be processed")
-    gc.sub.IntVar(&gc.episodes, "num", 1, "number of episodes to retrieve")
-    return gc
-}
-
-type Command struct {
-    sub *flag.FlagSet
-    podcast string
-    episodes int
-}
-
-func (g *Command) Name() string {
-    return g.sub.Name()
-}
-
-func (g *Command) Init(args []string) error {
-    return g.sub.Parse(args)
-}
-
-func (g *Command) Run() error {
-    if g.sub.Name() == "all" {
-        podimator.All(g.podcast) 
-    } else {
-        podimator.Update(g.podcast, g.episodes) 
-    }
-    return nil
-}
-
-type Runner interface {
-    Init([]string) error
-    Name() string
-    Run() error
-}
-
-func process(args []string) error {
-
-    var subcommand string
-
-    if len(args) < 1 {
-        // Default command
-        subcommand = "update"
-    }
-
-    subcommand = os.Args[1]
-
-    cmds := []Runner{
-        AllCommand(),
-        UpdateCommand(),
+    app := &cli.App{
+        Name: "Podimator",
+        Usage: "Automated podcast downloader.",
+        Flags: []cli.Flag{
+            &cli.StringFlag{
+                Name: "config",
+                Aliases: []string{"c"},
+                Usage: "Load configuration from `FILE`",
+                Value: "~/.config/podimator/podcasts.json",
+            },
+            &cli.BoolFlag{
+                Name: "debug",
+                Aliases: []string{"d"},
+                Usage: "Debugging program output",
+                Value: false,
+            },
+            &cli.BoolFlag{
+                Name: "verbose",
+                Aliases: []string{"v"},
+                Usage: "Verbose program output",
+                Value: false,
+            },
+        },
+        Before: func(c *cli.Context) error {
+            // Update the program context
+            podi.Debug = c.Bool("debug")
+            podi.Verbose = c.Bool("verbose")
+            podi.ConfigPath = c.String("config")
+            podi.Init()
+            return nil
+        },
+        Commands: []*cli.Command{
+            {
+                Name: "update",
+                Aliases: []string{"u"},
+                Usage: "retrieve most recent episode for podcasts",
+                Flags: []cli.Flag{
+                    &cli.StringFlag {
+                        Name: "name",
+                        Aliases: []string{"n"},
+                        Usage: "Select single podcast by name",
+                        Value: "",
+                    },
+                },
+                Action: func(c *cli.Context) error {
+                    podi.Update(podimator.Update{
+                        PodcastName: c.String("podcast"),
+                        EpisodeRange: "",
+                        DateRange: "",
+                    })
+                    return nil
+                },
+            },
+        },
     }
 
-    for _, cmd := range cmds {
-        if cmd.Name() == subcommand {
-            cmd.Init(os.Args[2:])
-            return cmd.Run()
-        }
+    err := app.Run(os.Args)
+    if err != nil {
+        os.Exit(1)
     }
-    return nil
 }
-
-func Run() error {
-    // TODO: Implement error handling and usage output
-    return process(os.Args[1:])
-}
-
