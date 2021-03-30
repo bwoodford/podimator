@@ -57,8 +57,6 @@ func Run() {
                 Action: func(c *cli.Context) error {
                     podi.Run(podimator.Update{
                         PodcastName: c.String("name"),
-                        EpisodeRange: "",
-                        DateRange: "",
                     })
                     return nil
                 },
