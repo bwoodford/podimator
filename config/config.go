@@ -17,7 +17,7 @@ type Config struct {
 func (config *Config) Setup() {
     err := os.MkdirAll(config.Location, 755)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "there was an issue creating podcast file directory: %v", err)
+        fmt.Fprintf(os.Stderr, "there was an issue creating the podcast file directory: %v", err)
         os.Exit(1)
     }
 

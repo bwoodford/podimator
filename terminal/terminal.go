@@ -39,7 +39,6 @@ func Run() {
             podi.Debug = c.Bool("debug")
             podi.Verbose = c.Bool("verbose")
             podi.ConfigPath = c.String("config")
-            podi.Init()
             return nil
         },
         Commands: []*cli.Command{
@@ -56,8 +55,8 @@ func Run() {
                     },
                 },
                 Action: func(c *cli.Context) error {
-                    podi.Update(podimator.Update{
-                        PodcastName: c.String("podcast"),
+                    podi.Run(podimator.Update{
+                        PodcastName: c.String("name"),
                         EpisodeRange: "",
                         DateRange: "",
                     })
