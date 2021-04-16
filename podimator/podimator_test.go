@@ -8,7 +8,7 @@ import (
 	"github.com/mmcdole/gofeed"
 
 	"github.com/IveGotNorto/podimator/config"
-	"github.com/IveGotNorto/podimator/podcast"
+	"github.com/IveGotNorto/podimator/test"
 )
 
 var podi Podimator
@@ -23,67 +23,9 @@ func setup() {
 	podi = New()
 	podi.Config = &config.Config{
 		Location: "",
-		Podcasts: []*podcast.Podcast{
-			{
-				URL:     "www.google.com",
-				Name:    "Automated Humans, Automating Humans",
-				Updated: "01/10/1001",
-			},
-			{
-				URL:     "www.yahoo.com",
-				Name:    "Bill Bryson Sports Podcast",
-				Updated: "01/10/1001",
-			},
-			{
-				URL:     "www.aol.com",
-				Name:    "Gene Simmons Hardcore History",
-				Updated: "01/10/1001",
-			},
-		},
+		Podcasts: test.TestPodcasts,
 	}
-
-	items = []*gofeed.Item{
-		&gofeed.Item{
-			Enclosures: []*gofeed.Enclosure{
-				{
-					URL:  "https://woo.com",
-					Type: "audio/mpeg",
-				},
-				{
-					URL:  "https://thislinkshouldbeskipped.com",
-					Type: "text",
-				},
-			},
-		},
-		&gofeed.Item{
-			Enclosures: []*gofeed.Enclosure{
-				{
-					URL:  "https://thislinkshouldbeskipped.com",
-					Type: "text",
-				},
-				{
-					URL:  "https://woo.com",
-					Type: "audio/mpeg",
-				},
-			},
-		},
-		&gofeed.Item{
-			Enclosures: []*gofeed.Enclosure{
-				{
-					URL:  "https://thislinkshouldbeskipped.com",
-					Type: "text",
-				},
-				{
-					URL:  "https://thislinkshouldbeskipped.com",
-					Type: "text",
-				},
-			},
-		},
-		&gofeed.Item{
-			Enclosures: []*gofeed.Enclosure{
-			},
-		},
-	}
+	items = test.TestItems
 }
 
 func TestPodIndex(t *testing.T) {
