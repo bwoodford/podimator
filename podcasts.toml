@@ -1,0 +1,9 @@
+location="/home/bwoodford/media/podcasts"
+
+[[podcasts]]
+name="Philosophize This!"
+url="https://philosophizethis.libsyn.com/rss"
+
+[[podcasts]]
+name="Lex Fridman Podcast"
+url="https://lexfridman.com/feed/podcast"

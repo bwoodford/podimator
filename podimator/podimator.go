@@ -31,13 +31,13 @@ type Podimator struct {
 }
 
 func New() Podimator {
-    var podi Podimator
-    podi.Debug = false
-    podi.Verbose = false
-    podi.ConfigPath = "/etc/podimator/podcasts.json"
-    podi.Client = grab.NewClient()
-    podi.FeedParser = gofeed.NewParser()
-    return podi
+	return Podimator{
+		false,
+		false,
+		"/etc/podimator/podcasts.toml",
+		nil,
+		grab.NewClient(),
+	}
 }
 
 func (podi *Podimator) Run(com interface{}) {
