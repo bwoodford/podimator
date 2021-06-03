@@ -5,14 +5,17 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/IveGotNorto/podimator/podcast"
-
 	"github.com/pelletier/go-toml"
 )
 
+type Podcast struct {
+	URL  string
+	Name string
+}
+
 type Config struct {
 	Location string
-	Podcasts []*podcast.Podcast
+	Podcasts []*Podcast
 }
 
 // Add error return
@@ -33,26 +36,49 @@ func (config *Config) Setup() {
 	}
 }
 
-// Add error return
-func Parse(path string) *Config {
+func Parse(path string) (*Config, []error) {
+
+	errors := []error{}
 	file, err := os.Open(path)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "unable to open configuration file: %v", err)
-		os.Exit(1)
+		errors = append(errors, fmt.Errorf("Unable to open configuration file: %v", err))
+		return nil, errors
 	}
 	defer file.Close()
 
 	bytes, err := ioutil.ReadAll(file)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "unable to read configuration file: %v", err)
-		os.Exit(1)
+		errors = append(errors, fmt.Errorf("Unable to read configuration file: %v", err))
+		return nil, errors
 	}
 
 	var config Config
 	err = toml.Unmarshal(bytes, &config)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "unable to parse configuration file: %v", err)
-		os.Exit(1)
+		errors = append(errors, fmt.Errorf("Unable to parse configuration file: %v", err))
+		return nil, errors
 	}
-	return &config
+
+	errors = append(errors, validate(&config)...)
+	if len(errors) > 0 {
+		return nil, errors
+	}
+	return &config, nil
+}
+
+func validate(config *Config) []error {
+	errors := []error{}
+	if config.Location == "" {
+		errors = append(errors, fmt.Errorf("\tConfig location is empty"))
+	}
+
+	for i, pod := range config.Podcasts {
+		if pod.Name == "" {
+			errors = append(errors, fmt.Errorf("\tPodcast #%d: config name is empty", i))
+		}
+		if pod.URL == "" {
+			errors = append(errors, fmt.Errorf("\tPodcast #%d: URL is empty", i))
+		}
+	}
+	return errors
 }

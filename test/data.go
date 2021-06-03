@@ -1,31 +1,37 @@
 package test
 
-import(
+import (
 	"github.com/mmcdole/gofeed"
 
-	"github.com/IveGotNorto/podimator/podcast"
+	"github.com/IveGotNorto/podimator/config"
 )
 
-var TestPodcasts = []*podcast.Podcast{
+var TestPodcasts = []*config.Podcast{
 	{
-		URL:     "www.google.com",
-		Name:    "Automated Humans, Automating Humans",
-		Updated: "01/10/1001",
+		URL:  "www.google.com",
+		Name: "Automated Humans, Automating Humans",
 	},
 	{
-		URL:     "www.yahoo.com",
-		Name:    "Bill Bryson Sports Podcast",
-		Updated: "01/10/1001",
+		URL:  "www.yahoo.com",
+		Name: "Bill Bryson Sports Podcast",
 	},
 	{
-		URL:     "www.aol.com",
-		Name:    "Gene Simmons Hardcore History",
-		Updated: "01/10/1001",
+		URL:  "www.aol.com",
+		Name: "Gene Simmons Hardcore History",
 	},
+	{
+		URL:  "",
+		Name: "Bleh",
+	},
+	{
+		URL:  "www.askjeeves.com",
+		Name: "",
+	},
+	{},
 }
 
 var TestItems = []*gofeed.Item{
-	&gofeed.Item{
+	{
 		Enclosures: []*gofeed.Enclosure{
 			{
 				URL:  "https://woo.com",
@@ -37,7 +43,7 @@ var TestItems = []*gofeed.Item{
 			},
 		},
 	},
-	&gofeed.Item{
+	{
 		Enclosures: []*gofeed.Enclosure{
 			{
 				URL:  "https://thislinkshouldbeskipped.com",
@@ -49,7 +55,7 @@ var TestItems = []*gofeed.Item{
 			},
 		},
 	},
-	&gofeed.Item{
+	{
 		Enclosures: []*gofeed.Enclosure{
 			{
 				URL:  "https://thislinkshouldbeskipped.com",
@@ -61,8 +67,7 @@ var TestItems = []*gofeed.Item{
 			},
 		},
 	},
-	&gofeed.Item{
-		Enclosures: []*gofeed.Enclosure{
-		},
+	{
+		Enclosures: []*gofeed.Enclosure{},
 	},
 }
