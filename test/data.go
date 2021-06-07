@@ -19,15 +19,6 @@ var TestPodcasts = []*config.Podcast{
 		URL:  "www.aol.com",
 		Name: "Gene Simmons Hardcore History",
 	},
-	{
-		URL:  "",
-		Name: "Bleh",
-	},
-	{
-		URL:  "www.askjeeves.com",
-		Name: "",
-	},
-	{},
 }
 
 var TestItems = []*gofeed.Item{
