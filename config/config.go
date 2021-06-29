@@ -2,11 +2,28 @@ package config
 
 import (
 	"fmt"
+	"io"
+	"io/fs"
 	"io/ioutil"
 	"os"
 
-	"github.com/pelletier/go-toml"
+	"github.com/pelletier/go-toml/v2"
 )
+
+var fsym fileSystem = osFS{}
+
+type osFS struct{}
+
+type fileSystem interface {
+	Open(path string) (file, error)
+	MkdirAll(path string, perm fs.FileMode) error
+	ReadAll(r io.Reader) ([]byte, error)
+}
+
+type file interface {
+	io.Closer
+	io.Reader
+}
 
 type Podcast struct {
 	URL  string
@@ -18,67 +35,43 @@ type Config struct {
 	Podcasts []*Podcast
 }
 
-// Add error return
-func (config *Config) Setup() {
-	err := os.MkdirAll(config.Location, 755)
+func (osFS) Open(path string) (file, error)               { return os.Open(path) }
+func (osFS) MkdirAll(path string, perm fs.FileMode) error { return os.MkdirAll(path, perm) }
+func (osFS) ReadAll(r io.Reader) ([]byte, error)          { return ioutil.ReadAll(r) }
+
+func (config *Config) Setup() error {
+	err := fsym.MkdirAll(config.Location, 755)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "there was an issue creating the podcast file directory: %v", err)
+		return err
 	}
 
 	for _, podcast := range config.Podcasts {
 		// Create directories
 		fullPath := fmt.Sprintf("%v/%v", config.Location, podcast.Name)
-		err = os.MkdirAll(fullPath, 755)
+		err = fsym.MkdirAll(fullPath, 755)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "error creating %s directory: %v", podcast.Name, err)
+			fmt.Fprintf(os.Stderr, "error creating %s directory: %v\n", podcast.Name, err)
 			os.Exit(1)
 		}
 	}
+	return nil
 }
 
-func Parse(path string) (*Config, []error) {
-
-	errors := []error{}
-	file, err := os.Open(path)
+func Parse(path string) (*Config, error) {
+	file, err := fsym.Open(path)
 	if err != nil {
-		errors = append(errors, fmt.Errorf("Unable to open configuration file: %v", err))
-		return nil, errors
+		return nil, err
 	}
 	defer file.Close()
 
-	bytes, err := ioutil.ReadAll(file)
+	bytes, err := fsym.ReadAll(file)
 	if err != nil {
-		errors = append(errors, fmt.Errorf("Unable to read configuration file: %v", err))
-		return nil, errors
+		return nil, err
 	}
 
 	var config Config
-	err = toml.Unmarshal(bytes, &config)
-	if err != nil {
-		errors = append(errors, fmt.Errorf("Unable to parse configuration file: %v", err))
-		return nil, errors
-	}
-
-	errors = append(errors, validate(&config)...)
-	if len(errors) > 0 {
-		return nil, errors
+	if err = toml.Unmarshal(bytes, &config); err != nil {
+		return nil, err
 	}
 	return &config, nil
-}
-
-func validate(config *Config) []error {
-	errors := []error{}
-	if config.Location == "" {
-		errors = append(errors, fmt.Errorf("\tConfig location is empty"))
-	}
-
-	for i, pod := range config.Podcasts {
-		if pod.Name == "" {
-			errors = append(errors, fmt.Errorf("\tPodcast #%d: config name is empty", i))
-		}
-		if pod.URL == "" {
-			errors = append(errors, fmt.Errorf("\tPodcast #%d: URL is empty", i))
-		}
-	}
-	return errors
 }
