@@ -59,6 +59,22 @@ var TestItems = []*gofeed.Item{
 		},
 	},
 	{
+		Enclosures: []*gofeed.Enclosure{
+			{
+				URL:  "",
+				Type: "text",
+			},
+			{
+				URL:  "https://thislinkshouldbeskipped.com",
+				Type: "",
+			},
+			{
+				URL:  "",
+				Type: "",
+			},
+		},
+	},
+	{
 		Enclosures: []*gofeed.Enclosure{},
 	},
 }
