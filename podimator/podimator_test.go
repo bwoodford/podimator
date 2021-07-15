@@ -7,10 +7,10 @@ import (
 	"github.com/mmcdole/gofeed"
 
 	"github.com/IveGotNorto/podimator/config"
-	"github.com/IveGotNorto/podimator/test"
+	test "github.com/IveGotNorto/podimator/testdata"
 )
 
-var podi Podimator
+var podi *Podimator
 var items []*gofeed.Item
 
 type BasicTest struct {
@@ -38,6 +38,7 @@ func TestPodIndex(t *testing.T) {
 		{"Bill Bryson Sports Podcast", 1},
 		{"Gene Simmons Hardcore History", 2},
 		{"I Don't Exist!", -1},
+		{"", -1},
 	}
 	for _, test := range tests {
 		if got, _ := findIndex(podi.Config.Podcasts, test.input); got != test.expected {
@@ -55,6 +56,7 @@ func TestBuildRequests(t *testing.T) {
 		{items[1], 1},
 		{items[2], 0},
 		{items[3], 0},
+		{items[4], 0},
 	}
 	for i, test := range tests {
 		if got := buildRequests([]*gofeed.Item{test.input}, ""); len(got) != test.expected {
@@ -66,15 +68,20 @@ func TestBuildRequests(t *testing.T) {
 func TestFilter(t *testing.T) {
 	// Copy the global struct before making changes to it
 	var podiCop = podi
-	var tests = []BasicTest{
-		{"", len(podiCop.Config.Podcasts)},
-		{"I Don't Exist!", len(podiCop.Config.Podcasts)},
-		{"Automated Humans, Automating Humans", 1},
+	var tests = []struct {
+		input    string
+		errors   bool
+		expected int
+	}{
+		{"I Don't Exist!", true, len(podiCop.Config.Podcasts)},
+		{"", true, len(podiCop.Config.Podcasts)},
+		{"Automated Humans, Automating Humans", false, 1},
 	}
 	for _, test := range tests {
-		podiCop.filter(test.input)
-		if len(podiCop.Config.Podcasts) != test.expected {
-			t.Errorf("Test Podimator.filter(%q) = len(%v), expected len(%v)", test.input, len(podiCop.Config.Podcasts), test.expected)
+		err := podiCop.filter(test.input)
+		length := len(podiCop.Config.Podcasts)
+		if length != test.expected && (err != nil) == test.errors {
+			t.Errorf("Test Podimator.filter(%q) = len(%v), expected len(%v)", test.input, length, test.expected)
 		}
 	}
 }

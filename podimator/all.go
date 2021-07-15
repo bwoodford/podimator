@@ -15,7 +15,7 @@ type All struct {
 func (all All) Run(podi *Podimator) error {
 	if len(all.PodcastName) > 0 {
 		if err := podi.filter(all.PodcastName); err != nil {
-			return fmt.Errorf("unable to filter podcast %s: %v", all.PodcastName, err)
+			return fmt.Errorf("%w; unable to filter podcast", err)
 		}
 	}
 
@@ -24,7 +24,7 @@ func (all All) Run(podi *Podimator) error {
 	for _, p := range podi.Config.Podcasts {
 		feed, err := parser.ParseURL(p.URL)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "unable to parse %s: %s\n", p, err)
+			fmt.Fprintf(os.Stdout, "WARNING: %v; unable to parse URL for %s", err, p.Name)
 			continue
 		}
 		requests := buildRequests(feed.Items, podi.Config.Location+"/"+p.Name)

@@ -1,4 +1,4 @@
-location="/home/bwoodford/media/podcasts"
+location="~/media/podcasts"
 
 [[podcasts]]
 name="Philosophize This!"

@@ -21,7 +21,7 @@ func (up Update) Run(podi *Podimator) error {
 		// Apply filter to retrieve single podcast
 		err := podi.filter(up.PodcastName)
 		if err != nil {
-			return fmt.Errorf("unable to filter podcast %s: %v", up.PodcastName, err)
+			return fmt.Errorf("%v; unable to filter podcast", err)
 		}
 	}
 
@@ -30,7 +30,7 @@ func (up Update) Run(podi *Podimator) error {
 	for _, p := range podi.Config.Podcasts {
 		feed, err := parser.ParseURL(p.URL)
 		if err != nil {
-			fmt.Fprintf(os.Stdout, "Warning: unable to parse %s: %s\n", p, err)
+			fmt.Fprintf(os.Stdout, "WARNING: %v; unable to parse URL for %s", err, p.Name)
 			continue
 		}
 		requests := buildRequests([]*gofeed.Item{feed.Items[0]}, podi.Config.Location+"/"+p.Name)

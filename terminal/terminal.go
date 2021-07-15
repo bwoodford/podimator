@@ -35,7 +35,6 @@ func Run() {
 			},
 		},
 		Before: func(c *cli.Context) error {
-			// Update the program context
 			pod.Debug = c.Bool("debug")
 			pod.Verbose = c.Bool("verbose")
 			pod.ConfigPath = c.String("config")
